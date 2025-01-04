@@ -1,0 +1,28 @@
+version: '3.8'
+services:
+  django:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    image: django
+    container_name: django
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    depends_on:
+      - sqlite3
+    network_mode: "host"
+
+  sqlite3:
+    image: nouchka/sqlite3:latest
+    container_name: sqlite3
+    restart: always
+    volumes:
+      - db-data:/var/lib/sqlite
+    environment:
+      - SQLITE_DATABASE=/var/lib/sqlite/db.sqlite3
+
+volumes:
+  db-data:

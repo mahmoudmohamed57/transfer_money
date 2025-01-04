@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Transfer Funds</title>
+</head>
+<body>
+    <h1>Transfer Funds</h1>
+    <form method="post">
+        {% csrf_token %}
+        <label for="source_account">Source Account:</label>
+        <select name="source_account" id="source_account">
+            {% for account in accounts %}
+            <option value="{{ account.id }}">{{ account.name }} ({{ account.balance }})</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="target_account">Target Account:</label>
+        <select name="target_account" id="target_account">
+            {% for account in reversed_accounts %}
+            <option value="{{ account.id }}">{{ account.name }} ({{ account.balance }})</option>
+            {% endfor %}
+        </select>
+        <br>
+        <label for="amount">Amount:</label>
+        <input type="number" name="amount" id="amount" step="0.01" required>
+        <br>
+        <button type="submit">Transfer</button>
+    </form>
+    <a href="/">Back to Home</a>
+</body>
+</html>

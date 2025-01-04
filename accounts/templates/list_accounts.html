@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>List of Accounts</title>
+</head>
+<body>
+    <h1>Accounts</h1>
+    <table border="1">
+        <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Balance</th>
+            <th>Details</th>
+        </tr>
+        {% for account in accounts %}
+        <tr>
+            <td>{{ account.id }}</td>
+            <td>{{ account.name }}</td>
+            <td>{{ account.balance }}</td>
+            <td><a href="/accounts/{{ account.id }}/">View Details</a></td>
+        </tr>
+        {% endfor %}
+    </table>
+    <a href="/accounts/transfer/">Transfer Funds</a>
+</body>
+</html>
