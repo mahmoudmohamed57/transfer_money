@@ -1,28 +1,44 @@
-version: '3.8'
+name: ${SERVER_NAME:-local_server}
+
 services:
-  django:
-    build: 
+  django_app:
+    build:
       context: .
-      dockerfile: Dockerfile
-    image: django
-    container_name: django
+    image: django_app:latest
+    ports:
+      - "${DJANGO_APP_PORT:-8000}:8000"
+    restart: on-failure
+    volumes:
+      - .:/django_app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    env_file:
+      - .env
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  mysql:
+    image: mysql:latest
     restart: always
     ports:
-      - "8000:8000"
-    volumes:
-      - .:/app
-    depends_on:
-      - sqlite3
-    network_mode: "host"
-
-  sqlite3:
-    image: nouchka/sqlite3:latest
-    container_name: sqlite3
-    restart: always
-    volumes:
-      - db-data:/var/lib/sqlite
+      - "${MYSQL_PORT:-3306}:3306"
     environment:
-      - SQLITE_DATABASE=/var/lib/sqlite/db.sqlite3
+      - MYSQL_DATABASE=admin
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root}
+      - MYSQL_USER=${MYSQL_USER:-admin}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-admin}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
 volumes:
-  db-data:
+  mysql_data:

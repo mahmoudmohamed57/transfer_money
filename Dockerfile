@@ -1,19 +1,42 @@
+# Use the official Python image from Docker Hub
 FROM python:3.11-slim
 
-ENV PYTHONDONTWRITEBYTECODE 1
+# Set environment variables for Python
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1
 
-ENV PYTHONUNBUFFERED 1
-
-WORKDIR /app
-
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    libpq-dev gcc --no-install-recommends && \
-    rm -rf /var/lib/apt/lists/*
+    build-essential \
+    default-libmysqlclient-dev \
+    pkg-config \
+    libssl-dev \
+    libffi-dev \
+    libmariadb-dev-compat \
+    libmariadb-dev \
+    libpq-dev \
+    git \
+    iputils-ping \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
-COPY requirements.txt .
+# Set working directory
+WORKDIR /django_app
 
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy only requirements first to leverage Docker cache
+COPY requirements.txt /django_app/requirements.txt
 
-COPY . .
+# Install Python dependencies
+RUN pip install --no-cache-dir --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+# Copy application files
+COPY . /django_app
+
+# Create logs directory
+RUN mkdir -p /django_app/logs && chown -R www-data:www-data /django_app/logs && chmod -R 755 /django_app/logs
+
+# Expose the application port
+EXPOSE 8000
+
+# Run django_app development server with hot-reloading
+CMD ["sh", "-c", "python manage.py runserver 0.0.0.0:8000"]
