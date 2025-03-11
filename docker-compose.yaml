@@ -7,23 +7,37 @@ services:
     image: django_app:latest
     ports:
       - "${DJANGO_APP_PORT:-8000}:8000"
-    restart: on-failure
-    volumes:
-      - .:/django_app
     depends_on:
       mysql:
         condition: service_healthy
+    restart: on-failure
+    command: bash -c "
+      python manage.py collectstatic --no-input &&
+      python manage.py migrate &&
+      gunicorn --bind 0.0.0.0:8000 -w 4 project.wsgi:application --reload --log-level info --access-logfile - --error-logfile - 2>&1 | tee /app/logs/gunicorn.log"
+    volumes:
+      - .:/django_app
+      - media:/app/media
+      - static:/app/static
     env_file:
       - .env
+    environment:
+      - DJANGO_APP_PORT=${DJANGO_APP_PORT:-8000}
+      - DJANGO_APP_HOST=${DJANGO_APP_HOST:-localhost}
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost:8000" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 
   mysql:
     image: mysql:latest
-    restart: always
     ports:
       - "${MYSQL_PORT:-3306}:3306"
     environment:
@@ -35,10 +49,11 @@ services:
       - mysql_data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 30s
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 volumes:
   mysql_data:
+  media:
+  static:
