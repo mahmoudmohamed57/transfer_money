@@ -1,0 +1,15 @@
+# Server Configuration
+SERVER_NAME=local_server
+droplet_server=157.245.143.74
+NGINX_APP_PORT=80
+DJANGO_APP_PORT=8000
+DJANGO_APP_HOST=localhost
+DEBUG=False
+
+# Database Configuration
+MYSQL_PORT=3306
+MYSQL_DATABASE=admin
+MYSQL_HOSTNAME=mysql
+MYSQL_USER=admin
+MYSQL_PASSWORD=admin
+MYSQL_ROOT_PASSWORD=root
