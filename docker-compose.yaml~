@@ -27,6 +27,30 @@ services:
       timeout: 10s
       retries: 3
 
+  nginx:
+    build: ./nginx
+    image: nginx:latest
+    restart: always
+    depends_on:
+      django_app:
+        condition: service_healthy
+    ports:
+      - ${NGINX_APP_PORT:-80}:80
+      - "443:443"
+    volumes:
+      - media:/app/media
+      - static:/app/static
+      - ./logs/nginx:/var/log/nginx
+      - /root/certbot/conf:/etc/letsencrypt
+      - /root/certbot/www:/var/www/certbot
+      - /etc/ssl/certs/selfsigned.crt:/etc/ssl/certs/selfsigned.crt:ro
+      - /etc/ssl/private/selfsigned.key:/etc/ssl/private/selfsigned.key:ro
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   mysql:
     image: mysql:latest
     ports:
